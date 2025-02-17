@@ -56,7 +56,7 @@ export default class World extends EventEmitter{
     setupWorld() {
         // Setup
         //this.cube = new ExampleClass()
-        this.logo = new Logo()
+        //this.logo = new Logo()
         this.particles = new Particles()
         this.environment = new Environment()
 

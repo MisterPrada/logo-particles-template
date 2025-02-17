@@ -9,8 +9,15 @@
 uniform float uTime;
 uniform float uProgress;
 uniform sampler2D uLogoTexture;
+uniform sampler2D uLogoColorsTexture;
+uniform float uNoiseFrequencyParticles;
+uniform float uNoiseFrequencyLogo;
+
 attribute vec2 aParticlesUv;
+attribute vec3 aRandom;
+
 varying vec3 vPosition;
+varying vec4 vColor;
 
 float sineOut(float t){
     return sin(t*HALF_PI);
@@ -22,8 +29,8 @@ float exponentialOut(float t){
 
 float inOutProgress(vec3 position, vec3 target, float progress) {
     // Mixed position
-    float noiseOrigin = simplexNoise3d(position * 0.4);
-    float noiseTarget = simplexNoise3d(target * 0.1);
+    float noiseOrigin = simplexNoise3d(position * uNoiseFrequencyParticles);
+    float noiseTarget = simplexNoise3d(target * uNoiseFrequencyLogo);
     float noise = mix(noiseOrigin, noiseTarget, progress);
     noise = smoothstep(-1.0, 1.0, noise);
 
@@ -58,18 +65,15 @@ void main() {
     #include <begin_vertex>
 
     float time = uTime * 0.2;
+    float random = aRandom.x;
     vec4 logoTexture = texture(uLogoTexture, aParticlesUv);
 
 
     float inOutProgress = inOutProgress(transformed.xyz, logoTexture.xyz, uProgress);
-
-
-
-    transformed.xyz = mix(transformed.xyz, logoTexture.xyz, inOutProgress);
-
     transformed.x *= sin(inOutProgress * 10.0); // force swirly effect
 
 
+    transformed.xyz = mix(transformed.xyz, logoTexture.xyz, inOutProgress);
 
     vPosition = transformed.xyz;
 
@@ -84,4 +88,8 @@ void main() {
     #include <clipping_planes_vertex>
     #include <worldpos_vertex>
     #include <fog_vertex>
+
+    /* Custom code */
+    //vColor = texture(uLogoColorsTexture, aParticlesUv);
+    /* End coustom code */
 }

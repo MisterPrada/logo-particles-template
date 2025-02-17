@@ -31,14 +31,54 @@ export default class Particles extends Model {
     }
 
     setModel() {
-        const logoGeometry = this.logo.mergedLogoGeometry.clone()
+        const logoTexture = this.resources.items.logoTexture
+        //const logoTexture = this.resources.items.japanTexture
+        //const logoTexture = this.resources.items.journeyTexture
+        const img = logoTexture.image;
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+
+        const imageData = ctx.getImageData(0, 0, img.width, img.height).data;
+        const positions = [];
+        const colors = [];
+
+        for (let y = 0; y < img.height; y++) {
+            for (let x = 0; x < img.width; x++) {
+                const i = (y * img.width + x) * 4;
+                const r = imageData[i];
+                const g = imageData[i + 1];
+                const b = imageData[i + 2];
+                const a = imageData[i + 3];
+
+                const brightness = (r + g + b) / 3;
+
+                if (brightness > 200) { // not transparent pixels
+                    positions.push((x - img.width / 2) / 100, -(y - img.height / 2) / 100, 0);
+                    //colors.push(r / 255, g / 255, b / 255, a);
+                }
+            }
+        }
+
+        const logoGeometry = new THREE.BufferGeometry();
+        logoGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        logoGeometry.setIndex(null)
+
+
+        //const logoGeometry = this.logo.mergedLogoGeometry.clone()
         const logoGeometryTexture = Helpers.makeTexture( logoGeometry )
 
         // Geometry
         const particlesGeometry = new THREE.BufferGeometry()
 
-        const particlesCount = 50000
+        const particlesCount = positions.length / 3
+        console.log(particlesCount)
         const positionArray = new Float32Array( particlesCount * 3 )
+        const randomArray = new Float32Array( particlesCount * 3 )
         const scaleArray = new Float32Array( particlesCount )
 
         for ( let i = 0; i < particlesCount; i++ ) {
@@ -49,6 +89,10 @@ export default class Particles extends Model {
             positionArray[ i * 3 + 2 ] = ( Math.random()  ) * 10 + 30
 
             scaleArray[ i ] = Math.random()
+
+            randomArray[ i * 3 + 0 ] = Math.random()
+            randomArray[ i * 3 + 1 ] = Math.random()
+            randomArray[ i * 3 + 2 ] = Math.random()
         }
 
 
@@ -69,14 +113,17 @@ export default class Particles extends Model {
 
         //particlesGeometry.setIndex( null )
         particlesGeometry.setAttribute( 'position', new THREE.BufferAttribute( positionArray, 3 ) )
+        //particlesGeometry.setAttribute( 'color', new THREE.Float32BufferAttribute(colors, 4) )
         particlesGeometry.setAttribute( 'aScale', new THREE.BufferAttribute( scaleArray, 1 ) )
+        particlesGeometry.setAttribute( 'aRandom', new THREE.BufferAttribute( randomArray, 3 ) )
         particlesGeometry.setAttribute( 'aParticlesUv', new THREE.BufferAttribute( particlesUvArray, 2 ) )
 
         particlesGeometry.needsUpdate = true
 
         const pointsMaterial = this.pointsMaterial = new THREE.PointsMaterial( {
             color: 0xffffff,
-            size: 0.5,
+            //vertexColors: true,
+            size: 0.1,
             sizeAttenuation: true,
             depthWrite: false,
             //depthTest: true,
@@ -88,8 +135,13 @@ export default class Particles extends Model {
             pointsMaterial.uniforms = shader.uniforms;
             shader.uniforms.uProgress = new THREE.Uniform( 0.5 )
             shader.uniforms.uLogoTexture = new THREE.Uniform( logoGeometryTexture )
+            //shader.uniforms.uLogoColorsTexture = new THREE.Uniform( logoTexture )
             //shader.uniforms.uPixelRatio = { value: Math.min( window.devicePixelRatio, 2 ) }
             shader.uniforms.uTime =  new THREE.Uniform( 0.0 )
+            shader.uniforms.uNoiseFrequencyParticles =  new THREE.Uniform( 0.653 )
+            shader.uniforms.uNoiseFrequencyLogo =  new THREE.Uniform( 0.870 )
+
+
             // shader.uniforms.uResolution = new THREE.Uniform(
             //     new THREE.Vector2(
             //         this.sizes.width * this.sizes.pixelRatio,
@@ -128,6 +180,20 @@ export default class Particles extends Model {
             max: 1,
             step: 0.01,
             label: "Progress"
+        } )
+
+        debugFolder.addBinding( this.pointsMaterial.uniforms.uNoiseFrequencyParticles, "value", {
+            min: 0.001,
+            max: 10,
+            step: 0.001,
+            label: "uNoiseFrequencyParticles"
+        } )
+
+        debugFolder.addBinding( this.pointsMaterial.uniforms.uNoiseFrequencyLogo, "value", {
+            min: 0.001,
+            max: 10,
+            step: 0.001,
+            label: "uNoiseFrequencyLogo"
         } )
     }
 

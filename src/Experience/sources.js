@@ -44,12 +44,12 @@ export default [
         }
     },
     {
-        name: 'logoSvg',
-        type: 'svg',
+        name: 'logoTexture',
+        type: 'texture',
         obfuscate: false,
-        path: '/svg/three-logo.svg',
+        path: '/textures/Threejs-logo.png',
         meta: {
-            "type": "svg"
+            "type": "texture"
         }
     }
 ]

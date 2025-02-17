@@ -30,9 +30,7 @@ export default class Logo extends Model {
     }
 
     setModel() {
-
         const logoSvgData = this.resources.items.logoSvg
-
         const group = this._getShapedGroup( logoSvgData );
 
         group.traverse( child => {
