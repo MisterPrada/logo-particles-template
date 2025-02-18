@@ -22,7 +22,8 @@ export default class Debug {
         }
         Debug._instance = this
 
-        this.active = window.location.hash === '#debug'
+        //this.active = window.location.hash === '#debug'
+        this.active = true
 
         if ( this.active ) {
             this.panel = new Pane({

@@ -9,6 +9,7 @@ import * as Helpers from '../Utils/Helpers.js'
 
 import particlesFragmentShader from '../Shaders/Particles/fragment.glsl'
 import particlesVertexShader from '../Shaders/Particles/vertex.glsl'
+import gsap from "gsap";
 
 export default class Particles extends Model {
     experience = Experience.getInstance()
@@ -22,6 +23,7 @@ export default class Particles extends Model {
     resources = experience.resources
     container = new THREE.Group();
     logo = experience.world.logo
+    postprocessing = experience.postProcess
 
     constructor() {
         super()
@@ -30,43 +32,13 @@ export default class Particles extends Model {
         //this.setDebug()
     }
 
+    postInit() {
+
+    }
+
     setModel() {
-        const logoTexture = this.resources.items.logoTexture
-        //const logoTexture = this.resources.items.japanTexture
-        //const logoTexture = this.resources.items.journeyTexture
-        const img = logoTexture.image;
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-
-
-        const imageData = ctx.getImageData(0, 0, img.width, img.height).data;
-        const positions = [];
-        const colors = [];
-
-        for (let y = 0; y < img.height; y++) {
-            for (let x = 0; x < img.width; x++) {
-                const i = (y * img.width + x) * 4;
-                const r = imageData[i];
-                const g = imageData[i + 1];
-                const b = imageData[i + 2];
-                const a = imageData[i + 3];
-
-                const brightness = (r + g + b) / 3;
-
-                if (brightness > 200) { // not transparent pixels
-                    positions.push((x - img.width / 2) / 100, -(y - img.height / 2) / 100, 0);
-                    //colors.push(r / 255, g / 255, b / 255, a);
-                }
-            }
-        }
-
-        const logoGeometry = new THREE.BufferGeometry();
-        logoGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-        logoGeometry.setIndex(null)
+        const logoGeometry = this.logo.logoGeometry
+        const logoPositions = this.logo.positions
 
 
         //const logoGeometry = this.logo.mergedLogoGeometry.clone()
@@ -75,8 +47,7 @@ export default class Particles extends Model {
         // Geometry
         const particlesGeometry = new THREE.BufferGeometry()
 
-        const particlesCount = positions.length / 3
-        console.log(particlesCount)
+        const particlesCount = logoPositions.length / 3
         const positionArray = new Float32Array( particlesCount * 3 )
         const randomArray = new Float32Array( particlesCount * 3 )
         const scaleArray = new Float32Array( particlesCount )
@@ -86,7 +57,9 @@ export default class Particles extends Model {
 
             positionArray[ i * 3 + 0 ] = ( Math.random() - 0.5 ) * 2 + isLeft * 3
             positionArray[ i * 3 + 1 ] = ( Math.random() - 0.5 ) * 5
+            //positionArray[ i * 3 + 1 ] = 0
             positionArray[ i * 3 + 2 ] = ( Math.random()  ) * 10 + 30
+            //positionArray[ i * 3 + 2 ] = 30
 
             scaleArray[ i ] = Math.random()
 
@@ -121,14 +94,18 @@ export default class Particles extends Model {
         particlesGeometry.needsUpdate = true
 
         const pointsMaterial = this.pointsMaterial = new THREE.PointsMaterial( {
-            color: 0xffffff,
+            //color: 0xffffff,
+            //map: this.resources.items.particleTexture,
+            alphaMap: this.resources.items.particleTexture,
             //vertexColors: true,
             size: 0.1,
             sizeAttenuation: true,
-            depthWrite: false,
+            //depthWrite: false,
             //depthTest: true,
+            alphaTest: 0.2,
             transparent: true,
             blending: THREE.AdditiveBlending,
+            toneMapped: true,
         } );
 
         pointsMaterial.onBeforeCompile = shader => {
@@ -195,6 +172,40 @@ export default class Particles extends Model {
             step: 0.001,
             label: "uNoiseFrequencyLogo"
         } )
+
+        const animationButton = debugFolder.addButton({
+            label: 'Animation',   // optional
+            title: 'Start',
+        });
+
+        animationButton.on('click', () => {
+            this._animationButtonClick()
+        })
+    }
+
+    _animationButtonClick() {
+        this.pointsMaterial.uniforms.uProgress.value = 0
+        this.postprocessing.cocMaterial.uniforms.focusRange.value = 0
+
+        gsap.killTweensOf( this.pointsMaterial.uniforms.uProgress )
+        gsap.to( this.pointsMaterial.uniforms.uProgress, {
+            duration: 10,
+            value: 1.0,
+            ease: "power1.out",
+            onUpdate: () => {
+
+            },
+        } )
+
+        gsap.to( this.postprocessing.cocMaterial.uniforms.focusRange, {
+            delay: 4,
+            duration: 10,
+            value: 0.2,
+            ease: "power1.out",
+        } )
+
+        // this.pointsMaterial.uniforms.uProgress.value = 0
+        // console.log('Animation button clicked');
     }
 
     update( deltaTime ) {

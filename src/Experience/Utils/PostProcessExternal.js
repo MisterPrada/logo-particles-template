@@ -46,7 +46,7 @@ export default class PostProcess {
             powerPreference: "high-performance",
             // antialias: false,
             // stencil: false,
-            // depth: false
+            depth: true
         });
 
         this.bloomPass = this._bloomPass();
@@ -55,9 +55,9 @@ export default class PostProcess {
         //composer.addPass( new EffectPass( this.camera, this.bloomPass) );
 
         this.depthOfFieldEffect = new DepthOfFieldEffect( this.camera, {
-            focusDistance: 0.0,
-            focalLength: 0.048,
-            bokehScale: 2.0,
+            focusDistance: 0,
+            focusRange: 0,
+            bokehScale: 5.0,
             height: 480
         });
 
@@ -67,7 +67,7 @@ export default class PostProcess {
             "coc": {
                 "edge blur kernel": this.depthOfFieldEffect.blurPass.kernelSize,
                 "focus": this.cocMaterial.uniforms.focusDistance.value,
-                "focal length": this.cocMaterial.uniforms.focalLength.value
+                "focus length": this.cocMaterial.uniforms.focusRange.value
             },
             "resolution": this.depthOfFieldEffect.resolution.height,
             "bokeh scale": this.depthOfFieldEffect.bokehScale,
@@ -81,18 +81,6 @@ export default class PostProcess {
         composer.addPass( effectPass );
 
     }
-
-    _bokehPass() {
-        const bokehPass = new BokehPass( this.scene, this.camera, {
-            focus: this.state.bokeh.focus,
-            aperture: this.state.bokeh.aperture * 0.00001,
-            maxblur: this.state.bokeh.maxblur,
-        } );
-
-
-        return bokehPass;
-    }
-
 
     _bloomPass() {
         this.bloomParams = {
@@ -130,7 +118,7 @@ export default class PostProcess {
 
         if ( this.debug.panel ) {
             const postProcessFolder = this.debug.panel.addFolder( {
-                title: 'PostProcess', expanded: true
+                title: 'PostProcess', expanded: false
             } );
 
 
@@ -202,7 +190,7 @@ export default class PostProcess {
 
             bokehFolder.addBinding( this.depthOfFieldEffect, "bokehScale", {
                 min: 1.0,
-                max: 5.0,
+                max: 6.0,
                 step: 0.001,
                 label: "Bokeh Scale"
             } )
@@ -215,17 +203,18 @@ export default class PostProcess {
 
             bokehFolder.addBinding( this.cocMaterial.uniforms.focusDistance, "value", {
                 min: 0.0,
-                max: 0.1,
+                max: 1.0,
                 step: 0.001,
                 label: "Focus"
             } )
 
-            bokehFolder.addBinding( this.cocMaterial.uniforms.focalLength, "value", {
+            bokehFolder.addBinding( this.cocMaterial.uniforms.focusRange, "value", {
                 min: 0.0,
-                max: 0.3,
+                max: 1.0,
                 step: 0.0001,
-                label: "Focal Length"
+                label: "Focus Length"
             })
+
 
             // const matChanger = ( ) => {
             //

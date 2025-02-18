@@ -225,7 +225,7 @@ export default class PostProcess {
             bokehFolder.addBinding( this.bokehPass, 'enabled', { label: 'Enabled' } );
 
             bokehFolder.addBinding( this.bokehPass.uniforms.focus, 'value', {
-                min: 0.0, max: 3000.0, step: 0.001, label: 'Focus'
+                min: 0.0, max: 1000.0, step: 0.001, label: 'Focus'
             } )
 
             bokehFolder.addBinding( this.bokehPass.uniforms.aperture, 'value', {

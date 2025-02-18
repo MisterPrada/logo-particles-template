@@ -70,8 +70,10 @@ void main() {
 
 
     float inOutProgress = inOutProgress(transformed.xyz, logoTexture.xyz, uProgress);
-    transformed.x *= sin(inOutProgress * 10.0); // force swirly effect
+    //transformed.x *= sin(inOutProgress * 10.0); // force swirly effect
 
+    //float angle = log2(length(inOutProgress * 10.0));
+    //transformed.xy *= angle;
 
     transformed.xyz = mix(transformed.xyz, logoTexture.xyz, inOutProgress);
 

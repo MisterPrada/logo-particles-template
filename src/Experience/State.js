@@ -11,7 +11,7 @@ export default class State {
 
     experience = Experience.getInstance()
     renderer = this.experience.renderer.instance
-    postprocessing = false;
+    postprocessing = true;
     floatType = this.renderer.capabilities.isWebGL2 ? THREE.FloatType : THREE.HalfFloatType;
 
     unrealBloom = {

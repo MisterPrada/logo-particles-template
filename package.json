@@ -10,7 +10,7 @@
     "production": "vite --mode production",
     "build": "vite build",
     "build-dev": "vite build --mode development",
-    "build-obfuscate": "vite build && node encoder.js && node cleaner.js",
+    "build-obfuscate": "vite build",
     "//postinstall": "patch-package"
   },
   "devDependencies": {

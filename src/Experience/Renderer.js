@@ -33,8 +33,8 @@ export default class Renderer {
             depth: true,
             useLegacyLights: false,
             physicallyCorrectLights: true,
+            logarithmicDepthBuffer: false
         } )
-
 
         //console.log( this.instance )
         //this.instance.compile = compilePatch.bind( this.instance.compile )
@@ -52,7 +52,7 @@ export default class Renderer {
             if ( this.debug.panel ) {
                 const debugFolder = this.debug.panel.addFolder({
                     title: 'Renderer',
-                    expanded: true,
+                    expanded: false,
                 });
 
                 debugFolder.addBinding( this.instance, "toneMapping", {

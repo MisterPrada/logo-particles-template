@@ -49,6 +49,8 @@ export default class World extends EventEmitter{
 
         this.animationPipeline();
 
+        this.postInit()
+
         this.trigger( 'ready' )
         window.dispatchEvent( new CustomEvent( "3d-app:ready" ) );
     }
@@ -56,12 +58,12 @@ export default class World extends EventEmitter{
     setupWorld() {
         // Setup
         //this.cube = new ExampleClass()
-        //this.logo = new Logo()
+        this.logo = new Logo()
         this.particles = new Particles()
         this.environment = new Environment()
 
         // Add debug helpers
-        this.debugHelpers = new DebugHelpers()
+        //this.debugHelpers = new DebugHelpers()
 
         // Animation timeline
         this.animationPipeline();
@@ -102,7 +104,7 @@ export default class World extends EventEmitter{
     }
 
     postInit() {
-
+        this.particles?.postInit()
     }
 
     resize() {

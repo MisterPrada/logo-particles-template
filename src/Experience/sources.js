@@ -47,7 +47,16 @@ export default [
         name: 'logoTexture',
         type: 'texture',
         obfuscate: false,
-        path: '/textures/Threejs-logo.png',
+        path: '/textures/prada-logo.png',
+        meta: {
+            "type": "texture"
+        }
+    },
+    {
+        name: 'particleTexture',
+        type: 'texture',
+        obfuscate: false,
+        path: '/textures/particles/1.png',
         meta: {
             "type": "texture"
         }

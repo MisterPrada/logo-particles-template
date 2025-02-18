@@ -30,145 +30,46 @@ export default class Logo extends Model {
     }
 
     setModel() {
-        const logoSvgData = this.resources.items.logoSvg
-        const group = this._getShapedGroup( logoSvgData );
+        const logoTexture = this.resources.items.logoTexture
+        //const logoTexture = this.resources.items.japanTexture
+        //const logoTexture = this.resources.items.journeyTexture
+        const img = logoTexture.image;
 
-        group.traverse( child => {
-            if ( child.isMesh ) {
-                child.geometry.scale( 0.01, 0.01, 0.01 );
-                child.geometry.translate( -1, -1, 0 );
-            }
-        } );
-
-        // merge all geometries in group
-        let mergedLogoGeometry = this._mergeGroupGeometries( group );
-        mergedLogoGeometry = this.mergedLogoGeometry = this._subdivideGeometry( mergedLogoGeometry, 2 );
-
-        // create mesh
-        const mesh = new THREE.Mesh( mergedLogoGeometry, new THREE.MeshBasicMaterial( {
-            color: 0xffffff,
-            wireframe: true,
-            depthWrite: false,
-            })
-        );
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
 
 
-        // const shader = THREE.ShaderLib['points']; // Для PointsMaterial
-        //
-        // function expandShader(shaderCode) {
-        //     return shaderCode.replace(/#include <(.*?)>/g, (match, chunk) => {
-        //         return THREE.ShaderChunk[chunk] || `// Unknown chunk: ${chunk}`;
-        //     });
-        // }
+        const imageData = ctx.getImageData(0, 0, img.width, img.height).data;
+        const positions = [];
+        const colors = [];
 
-        //console.log(expandShader(shader.vertexShader));
+        for (let y = 0; y < img.height; y++) {
+            for (let x = 0; x < img.width; x++) {
+                const i = (y * img.width + x) * 4;
+                const r = imageData[i];
+                const g = imageData[i + 1];
+                const b = imageData[i + 2];
+                const a = imageData[i + 3];
 
+                const brightness = (r + g + b) / 3;
 
-
-
-
-        //this.container.add( group );
-        //this.container.add( mesh );
-        this.scene.add( this.container );
-    }
-
-    _getShapedGroup ( logoSvgData ) {
-        const group = new THREE.Group();
-        let renderOrder = 0
-
-        const material = new THREE.MeshBasicMaterial( {
-            side: THREE.DoubleSide,
-            depthWrite: false,
-        } );
-
-        for ( const path of logoSvgData.paths ) {
-
-            const fillColor = path.userData.style.fill;
-
-            if ( /*guiData.drawFillShapes &&*/ fillColor !== undefined && fillColor !== 'none' ) {
-
-                const material = new THREE.MeshBasicMaterial( {
-                    color: new THREE.Color().setStyle( fillColor ),
-                    opacity: path.userData.style.fillOpacity,
-                    transparent: true,
-                    side: THREE.DoubleSide,
-                    depthWrite: false,
-                    //wireframe: true
-                } );
-
-                const shapes = SVGLoader.createShapes( path );
-
-                for ( const shape of shapes ) {
-
-                    const geometry = new THREE.ShapeGeometry( shape );
-                    const mesh = new THREE.Mesh( geometry, material );
-                    mesh.renderOrder = renderOrder++;
-
-                    group.add( mesh );
-
+                if (brightness > 200) { // not transparent pixels
+                    positions.push((x - img.width / 2) / 100, -(y - img.height / 2) / 100, 0);
+                    //colors.push(r / 255, g / 255, b / 255, a);
                 }
-
             }
-
-            const strokeColor = path.userData.style.stroke;
-
-            if ( /*guiData.drawStrokes &&*/ strokeColor !== undefined && strokeColor !== 'none' ) {
-
-                const material = new THREE.MeshBasicMaterial( {
-                    color: new THREE.Color().setStyle( strokeColor ),
-                    opacity: path.userData.style.strokeOpacity,
-                    transparent: true,
-                    side: THREE.DoubleSide,
-                    depthWrite: false,
-                    //wireframe: true
-                } );
-
-                for ( const subPath of path.subPaths ) {
-
-                    const geometry = SVGLoader.pointsToStroke( subPath.getPoints(), path.userData.style );
-
-                    if ( geometry ) {
-
-                        const mesh = new THREE.Mesh( geometry, material );
-                        mesh.renderOrder = renderOrder++;
-
-                        group.add( mesh );
-
-                    }
-
-                }
-
-            }
-
         }
 
-        return group;
-    }
+        const logoGeometry = this.logoGeometry = new THREE.BufferGeometry();
+        logoGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        logoGeometry.setIndex(null)
 
-    _mergeGroupGeometries( group ) {
-        const geometries = [];
+        this.positions = positions
 
-        group.children.forEach( mesh => {
-            if ( mesh.isMesh ) {
-                const geometry = mesh.geometry.clone();
-                geometry.applyMatrix4( mesh.matrixWorld );
-                geometries.push( geometry );
-            }
-        } );
-
-        return BufferGeometryUtils.mergeGeometries( geometries );
-    }
-
-    _subdivideGeometry( geometry, iterations ) {
-        const params = {
-            split: true,       // optional, default: true
-            uvSmooth: false,      // optional, default: false
-            preserveEdges: false,      // optional, default: false
-            flatOnly: true,      // optional, default: false
-            maxTriangles: Infinity,   // optional, default: Infinity
-        };
-
-        return LoopSubdivision.modify( geometry, iterations, params );
+        //this.scene.add( this.container );
     }
 
     resize() {
@@ -178,7 +79,7 @@ export default class Logo extends Model {
     setDebug() {
         if ( !this.debug.active ) return
 
-        this.debug.createDebugTexture( this.resources.items.displacementTexture )
+        //this.debug.createDebugTexture( this.resources.items.displacementTexture )
     }
 
     update( deltaTime ) {
